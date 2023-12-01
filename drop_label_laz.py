@@ -103,12 +103,11 @@ def write_laz_file_without_label(client_folder_path, label_contained_laz_list):
         for field_name in fields_to_keep:
             setattr(out_las, field_name, getattr(las_file, field_name))
 
-        out_las.write(new_laz_output_file_path)       
-    
+        out_las.write(new_laz_output_file_path)
     
 
 def main():
-    parent_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\TreeTools\data\LIR184_FT_output'
+    parent_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\TreeTools\data\test'
     client_folder_path = create_subfolder(parent_path)
     laz_file_paths = get_laz_contains_label(parent_path)    
     label_contained_laz_list = is_label_contain_laz(laz_file_paths)
