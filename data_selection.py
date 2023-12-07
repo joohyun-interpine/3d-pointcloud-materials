@@ -247,11 +247,6 @@ class DataSelection:
         else:
             print("test data folder is already there")
     
-    # def cut_paste_folder(self, dict):
-        
-    #     cmd = 'move ' + r'C:\Users\JooHyunAhn\Interpine\DataSets\TreeTools_PlayGroundSet\data_selection\LIR42_C2_0_0.laz C:\Users\JooHyunAhn\Interpine\DataSets\TreeTools_PlayGroundSet\data_selection\test\LIR42_C2_0_0.laz'
-    #     os.system(cmd)
-    
         
     
 def main():
@@ -261,7 +256,6 @@ def main():
     file_stem_dict = dsObj.has_label_or_not(las_laz_list)
     higher_stem_proportion_data = dsObj.get_over_median_stem_proportion_data(file_stem_dict)    
     dsObj.create_dataset_dir(train='train', val='validation', test='test')
-    # dsObj.cut_paste_folder()
     dsObj.is_outlier_xyz(higher_stem_proportion_data)
     
  

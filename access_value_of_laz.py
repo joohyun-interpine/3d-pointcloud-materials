@@ -2,7 +2,7 @@ import laspy
 from datetime import datetime, timedelta
 
 
-file_path = r'C:\Users\JooHyunAhn\Interpine\DataSets\TreeTools_PlayGroundSet\data_selection\tree62_dl.las'
+file_path = r'C:\Users\JooHyunAhn\Interpine\DataSets\TreeTools_NonNomalised\424SILH1_01_Output_01_laz1_4.laz'
 las_file = laspy.read(file_path)
    
 # Access the point format to get information about the attributes
@@ -19,11 +19,32 @@ print("Field Names:", field_names)
 #     for field_name in field_names:
 #         value = getattr(point, field_name)
 #         print(f"{field_name}: {value}")
-        
+min_x, min_y, min_z = las_file.header.min
+max_x, max_y, max_z = las_file.header.max
+
+# Calculate center point coordinates
+center_x = (min_x + max_x) / 2
+center_y = (min_y + max_y) / 2
+center_z = (min_z + max_z) / 2
+
+# Create dictionaries for boundary and center coordinates
+boundary_dict = {
+    "min_x": min_x, "min_y": min_y, "min_z": min_z,
+    "max_x": max_x, "max_y": max_y, "max_z": max_z
+}
+
+center_dict = {
+    "center_x": center_x, "center_y": center_y, "center_z": center_z
+}
+
+
+
+
 # Access specific attributes
 x = las_file.x  # x-coordinate
 y = las_file.y  # y-coordinate
 z = las_file.z  # z-coordinate
+print(len(x), len(y), len(z))
 intensity = las_file.intensity
 classification = las_file.classification
 # range = las_file.range
@@ -39,3 +60,5 @@ print("Z:", z[:10])
 # print("Intensity:", intensity[:10])
 # print("Classification:", classification[:10])
 # print("Label:", label[:10])
+# Close LAS file
+las_file.close()
