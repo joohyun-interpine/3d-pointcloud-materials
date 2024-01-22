@@ -2,13 +2,13 @@ import laspy
 from datetime import datetime, timedelta
 
 
-file_path = r'C:\Users\JooHyunAhn\Interpine\DataSets\TreeTools_NonNomalised\424SILH1_01_Output_01_laz1_4.laz'
+file_path = r'C:\Users\JooHyunAhn\Interpine\DataSets\TreeTools_TrainingSet\Train_Dataset\Train_Dataset_Classified\Sample_data_nonselected\test\labelled\L23FCNSW796_segmented_raw_Label_0000000.laz'
 las_file = laspy.read(file_path)
    
 # Access the point format to get information about the attributes
 point_format = las_file.point_format
 print("Point Format:", point_format)
-
+num_points = las_file.header.point_count
 # Access the names of the fields (attribute names)
 field_names = list(point_format.dimension_names)
 
