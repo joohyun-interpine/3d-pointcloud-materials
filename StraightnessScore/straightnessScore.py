@@ -128,18 +128,17 @@ class StraightnessScore:
         furthest_top_swept_threshold = (furthest_xy_radius[-1] * 2) * furthest_top_distance_threshold
         lines = exception_description_string.splitlines()
         if abs(bottom_xy_radius[0]) + bottom_top_swept_threshold < abs(top_xy_radius[0]) and abs(bottom_xy_radius[1]) + bottom_top_swept_threshold < abs(top_xy_radius[1]):
-            print("top cylinder is far away from the centre of bottom")
-            # if furthest_xy_radius[0] != top_xy_radius[0] and furthest_xy_radius[1] != top_xy_radius[1]:
+
             if abs(furthest_xy_radius[0]) + furthest_top_swept_threshold < abs(top_xy_radius[0]) and abs(furthest_xy_radius[1]) + furthest_top_swept_threshold < abs(top_xy_radius[1]):
-                print("futhest and top is not same location")
+
                 if abs(furthest_xy_radius[0]) < abs(top_xy_radius[0]) and abs(furthest_xy_radius[1]) < abs(top_xy_radius[1]) and abs(furthest_xy_radius[-2]) < abs(top_xy_radius[-2]):
-                    print("tree is lightly swept")
+
                     bottom_furthest_coor_radius = [bottom_xy_radius, furthest_xy_radius]
                     bottom_top_furthest_coor_radius = [bottom_xy_radius, top_xy_radius, furthest_xy_radius]
                     
                     return [discovered_sorted_df, bottom_furthest_coor_radius, bottom_top_furthest_coor_radius]
                 else:
-                    print("tree is severly swept")
+  
                     bottom_furthest_coor_radius = [bottom_xy_radius, furthest_xy_radius]
                     bottom_top_furthest_coor_radius = [bottom_xy_radius, top_xy_radius, furthest_xy_radius]
                     
@@ -148,24 +147,19 @@ class StraightnessScore:
                 print("this can be predicted error that branch has been detected as stem, because the top and furthest cyliders are far away from the bottom center but top and furthest are shifted")    
                 return None
         else:
-            print("top cylinder is exactly same location with the bottom cylinder, but the furthest can be far away")
             if abs(furthest_xy_radius[0]) + furthest_top_swept_threshold < abs(top_xy_radius[0]) and abs(furthest_xy_radius[1]) + furthest_top_swept_threshold < abs(top_xy_radius[1]):
             # if furthest_xy_radius[0] != top_xy_radius[0] and furthest_xy_radius[1] != top_xy_radius[1]:
-                print("furthest cylider is at different location, so this tree is swept")
                 if abs(furthest_xy_radius[0]) < abs(top_xy_radius[0]) and abs(furthest_xy_radius[1]) < abs(top_xy_radius[1]) and abs(furthest_xy_radius[-2]) < abs(top_xy_radius[-2]):
-                    print("tree is lightly swept")
                     bottom_furthest_coor_radius = [bottom_xy_radius, furthest_xy_radius]
                     bottom_top_furthest_coor_radius = [bottom_xy_radius, top_xy_radius, furthest_xy_radius]
                     
                     return [discovered_sorted_df, bottom_furthest_coor_radius, bottom_top_furthest_coor_radius]
                 else:
-                    print("tree is severly swept")
                     bottom_furthest_coor_radius = [bottom_xy_radius, furthest_xy_radius]
                     bottom_top_furthest_coor_radius = [bottom_xy_radius, top_xy_radius, furthest_xy_radius]
                     
                     return [discovered_sorted_df, bottom_furthest_coor_radius, bottom_top_furthest_coor_radius]
             else:
-                print("perfectly straight tree")
                 bottom_furthest_coor_radius = [bottom_xy_radius, furthest_xy_radius]
                 bottom_top_furthest_coor_radius = [bottom_xy_radius, top_xy_radius, furthest_xy_radius]
                 
@@ -491,12 +485,12 @@ class StraightnessScore:
     def get_ratio(self, df, dict):
         cylinders_info_height_sorted = df.sort_values(by='Height_Bin')
         sed = cylinders_info_height_sorted.iloc[-1]['MA_Diameter'] # Assume that the top cylinder has 'SED' which is Small End Diameter
-        
+        height = cylinders_info_height_sorted.iloc[-1]['Height_Bin']
         distance = math.sqrt((dict['furthest_estimate_on_linecoord'][0] - dict['furthest_origin_edge_coord'][0])**2 + (dict['furthest_estimate_on_linecoord'][1] - dict['furthest_origin_edge_coord'][1])**2)
         ratio = distance / sed
         
         
-        return ratio
+        return ratio, height
     
     def get_csv(self, taper_path):
         files = os.listdir(taper_path)
@@ -508,15 +502,53 @@ class StraightnessScore:
         
         return csv_list
     
-                
+    
+    def classifier(self, file_name, ratio, height):
+  
+        class_six_height = 6
+        class_four_height = 4
+        
+        class_eight_ratio = 1/8
+        class_six_ratio = 1/6
+        class_five_ratio = 1/5
+        class_three_ratio = 1/3
+        class_half_ratio = 1/2
+        
+        if ratio < class_half_ratio:
+            print("{}: Sweep rate '{:.2f}' < {:.2f}".format(file_name, ratio, class_half_ratio))
+            if height > class_six_height:
+                print("{}: Height '{}m' > {}m, Sweep rate '{:.2f}' < {:.2f}".format(file_name, height, class_six_height, ratio, class_half_ratio))
+                if ratio < class_eight_ratio:                    
+                    print("{}: Class (8) - SED/8, Peeler grade".format(file_name))                    
+                elif class_eight_ratio <= ratio < class_six_ratio:
+                    print("{}: Class (6) - SED/6, Under peeler grade, but still straight".format(file_name))
+                elif class_six_ratio <= ratio < class_five_ratio:
+                    print("{}: Class (L) - SED/5, Long sawlogs".format(file_name))
+                else:
+                    print("exception case for ratio??")
+                    
+            elif class_four_height < height <= class_six_height:
+                print("{}: {} < Height '{}m' <= {}m, Sweep rate '{:.2f}' < {:.2f}".format(file_name, class_four_height, height, class_six_height, ratio, class_half_ratio))
+                if ratio < class_five_ratio:
+                    print("{}: Class (S) - SED/5, Sawlogs grade".format(file_name)) 
+                elif class_five_ratio <= ratio < class_three_ratio:
+                    print("{}: Class (3) - SED/3, Rough sawlogs or pulp grade".format(file_name))  
+            else:
+                print("{}: Height '{}m' <= {}m, Sweep rate '{:.2f}' < {:.2f}".format(file_name, height, class_four_height, ratio, class_half_ratio))                
+                print("{}: Height '{}m' is too low, it is possibly a regen tree".format(file_name, height))
+        else:
+            print("{}: Sweep rate '{:.2f}' > {:.2f}".format(file_name, ratio, class_half_ratio))            
+            print("{}: Class (1) - SED/2, Sw OK for Pulp grade".format(file_name))
+        
+                        
         
         
 def main():
     
-    parent_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\3d-pointcloud-materials\StraightnessScore\SampleData'
+    parent_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\3d-pointcloud-materials\StraightnessScore\SampleData\Plot95_FT_output'
     
-    csv_file_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\3d-pointcloud-materials\StraightnessScore\SampleData\taper\Plot95_25.csv'
-    taper_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\3d-pointcloud-materials\StraightnessScore\SampleData\taper'    
+    csv_file_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\3d-pointcloud-materials\StraightnessScore\SampleData\Plot95_FT_output\taper\Plot95_27.csv'
+    taper_path = r'C:\Users\JooHyunAhn\Interpine\GitRepos\3d-pointcloud-materials\StraightnessScore\SampleData\Plot95_FT_output\taper'    
     
     ssObj = StraightnessScore(parent_path)
     file_name = os.path.split(csv_file_path)[-1]
@@ -530,7 +562,8 @@ def main():
     for each_tree_taper in csv_list:
         
         file_name = os.path.split(each_tree_taper)[-1]
-        print("==== The straightness value for tree {} is being assessed ==== \n".format(file_name))
+        
+        print("\n==== The straightness value for tree {} is being assessed ==== \n".format(file_name))
         df = ssObj.read_csv(each_tree_taper)
         
         # From this, top of 2d view
@@ -545,21 +578,25 @@ def main():
             # From this, side of 3d view
             furthest_cylinders_info_dict = ssObj.get_length_hypotenuse_3d_coord(cylinders_info_height_sorted_df)    
             # print(furthest_cylinders_info_dict)
-            ratio = ssObj.get_ratio(cylinders_info_height_sorted_df, furthest_cylinders_info_dict)
+            ratio, height = ssObj.get_ratio(cylinders_info_height_sorted_df, furthest_cylinders_info_dict)
             
-            if str(ratio).strip() == 'nan':
-                nan_list.append(file_name)
-                print(">> {}: {:.2f} \n".format(file_name, ratio))
-                print("---- The assessment for straightness value of the tree {} is done ---- \n".format(file_name))
-            else:
-                ok_list.append(file_name)
-                print(">> {}: {:.2f} \n".format(file_name, ratio))
-                print("---- The assessment for straightness value of the tree {} is done ---- \n".format(file_name))
+            ssObj.classifier(file_name, ratio, height)
+            
+            
+            
+            # if str(ratio).strip() == 'nan':
+            #     nan_list.append(file_name)
+            #     print(">> {}: {:.2f} \n".format(file_name, ratio))
+            #     print("---- The assessment for straightness value of the tree {} is done ---- \n".format(file_name))
+            # else:
+            #     ok_list.append(file_name)
+            #     print(">> {}: {:.2f} \n".format(file_name, ratio))
+            #     print("---- The assessment for straightness value of the tree {} is done ---- \n".format(file_name))
         
-            if len(nan_list) > 0:
-                return nan_list
-            else:
-                pass
+            # if len(nan_list) > 0:
+            #     return nan_list
+            # else:
+            #     pass
         else:
             print("!!!! Please have a look the tree {}, it might have some prediction issue !!!! \n".format(file_name))
             continue
@@ -578,9 +615,9 @@ def main():
     # # From this, side of 3d view
     # furthest_cylinders_info_dict = ssObj.get_length_hypotenuse_3d_coord(cylinders_info_height_sorted_df)    
     # # print(furthest_cylinders_info_dict)
-    # ratio = ssObj.get_ratio(cylinders_info_height_sorted_df, furthest_cylinders_info_dict)
-    
-    # print("{}: {:.2f}".format(file_name, ratio))
+    # ratio, height = ssObj.get_ratio(cylinders_info_height_sorted_df, furthest_cylinders_info_dict)
+    # ssObj.classifier(file_name, ratio, height)
+    # # print("{}: {:.2f}".format(file_name, ratio))
         
  
 if __name__ == "__main__":
